@@ -56,7 +56,7 @@
         <Icon class="icon clear" icon="fluent:broom-sparkle-16-regular" width="22" height="22" @click="openBathDelete"/>
         <Icon class="icon"
               :class="{ 'disabled': !hasEmails }"
-              icon="mdi-light:email-outline"
+              icon="mdi:email-outline"
               width="20"
               height="20"
               @click="copyFirstRecipient"
