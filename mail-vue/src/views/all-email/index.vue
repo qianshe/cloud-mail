@@ -54,6 +54,20 @@
         <Icon class="icon" @click="changeTimeSort" icon="material-symbols-light:timer-arrow-up-outline" v-else
               width="28" height="28"/>
         <Icon class="icon clear" icon="fluent:broom-sparkle-16-regular" width="22" height="22" @click="openBathDelete"/>
+        <Icon class="icon"
+              :class="{ 'disabled': !hasEmails }"
+              icon="mdi-light:email-outline"
+              width="20"
+              height="20"
+              @click="copyFirstRecipient"
+              :title="$t('copyFirstRecipient')"/>
+        <Icon class="icon"
+              :class="{ 'disabled': !hasEmails }"
+              icon="mdi:key-outline"
+              width="20"
+              height="20"
+              @click="copyVerificationCode"
+              :title="$t('copyVerificationCode')"/>
       </template>
     </emailScroll>
     <el-dialog v-model="showBathDelete" :title="$t('clearEmail')" width="335"
@@ -98,6 +112,8 @@ import {Icon} from "@iconify/vue";
 import router from "@/router/index.js";
 import {useI18n} from 'vue-i18n';
 import {toUtc} from "@/utils/day.js";
+import {copyText} from "@/utils/clipboard-utils.js";
+import {ElMessage, ElMessageBox} from 'element-plus';
 
 defineOptions({
   name: 'all-email'
@@ -157,6 +173,11 @@ const selectTitle = computed(() => {
   if (params.searchType === 'account') return t('selectEmail')
   if (params.searchType === 'name') return t('sender')
   if (params.searchType === 'subject') return t('subject')
+})
+
+// 检查是否有邮件
+const hasEmails = computed(() => {
+  return sysEmailScroll.value?.emailList?.length > 0
 })
 
 const paramsStar = localStorage.getItem('all-email-params')
@@ -223,6 +244,152 @@ function refreshBefore() {
   params.name = null
   params.subject = null
   params.searchType = 'name'
+}
+
+// 复制第一封邮件的收件人邮箱
+async function copyFirstRecipient() {
+  try {
+    const emailList = sysEmailScroll.value?.emailList;
+    if (!emailList || emailList.length === 0) {
+      ElMessage({
+        message: t('noEmailsFound'),
+        type: 'warning',
+        plain: true,
+      });
+      return;
+    }
+
+    const firstEmail = emailList[0];
+    let recipientEmail = '';
+
+    // 根据邮件类型获取收件人邮箱
+    if (firstEmail.type === 0) {
+      // 接收的邮件，收件人是 toEmail
+      recipientEmail = firstEmail.toEmail;
+    } else {
+      // 发送的邮件，收件人是 sendEmail
+      recipientEmail = firstEmail.sendEmail;
+    }
+
+    if (!recipientEmail) {
+      ElMessage({
+        message: t('noRecipientFound'),
+        type: 'warning',
+        plain: true,
+      });
+      return;
+    }
+
+    await copyText(recipientEmail);
+    ElMessage({
+      message: t('copySuccessMsg') + ': ' + recipientEmail,
+      type: 'success',
+      plain: true,
+    });
+  } catch (err) {
+    console.error('复制收件人邮箱失败:', err);
+    ElMessage({
+      message: t('copyFailMsg'),
+      type: 'error',
+      plain: true,
+    });
+  }
+}
+
+// 从邮件内容中提取验证码
+function extractVerificationCode(email) {
+  // 常见的验证码正则表达式模式
+  const patterns = [
+    /verification code is:?\s*(\d{4,8})/i,
+    /verification code:?\s*(\d{4,8})/i,
+    /code is:?\s*(\d{4,8})/i,
+    /code:?\s*(\d{4,8})/i,
+    /验证码:?\s*(\d{4,8})/i,
+    /验证码是:?\s*(\d{4,8})/i,
+    /(\d{6})/g, // 6位数字，最常见的验证码格式
+    /(\d{4})/g, // 4位数字
+    /(\d{5})/g, // 5位数字
+    /(\d{8})/g, // 8位数字
+  ];
+
+  // 首先检查邮件主题
+  if (email.subject) {
+    for (const pattern of patterns) {
+      const match = email.subject.match(pattern);
+      if (match) {
+        return match[1] || match[0];
+      }
+    }
+  }
+
+  // 然后检查邮件内容
+  let content = '';
+  if (email.content) {
+    // 将HTML转换为纯文本
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = email.content;
+    content = tempDiv.textContent || tempDiv.innerText || '';
+  } else if (email.text) {
+    content = email.text;
+  }
+
+  if (content) {
+    for (const pattern of patterns) {
+      const match = content.match(pattern);
+      if (match) {
+        return match[1] || match[0];
+      }
+    }
+  }
+
+  return null;
+}
+
+// 复制验证码
+async function copyVerificationCode() {
+  try {
+    const emailList = sysEmailScroll.value?.emailList;
+    if (!emailList || emailList.length === 0) {
+      ElMessage({
+        message: t('noEmailsFound'),
+        type: 'warning',
+        plain: true,
+      });
+      return;
+    }
+
+    // 遍历邮件列表查找验证码
+    let verificationCode = null;
+    for (const email of emailList) {
+      verificationCode = extractVerificationCode(email);
+      if (verificationCode) {
+        break;
+      }
+    }
+
+    if (!verificationCode) {
+      ElMessage({
+        message: t('noVerificationCodeFound') + '，' + t('tryRefreshEmails'),
+        type: 'warning',
+        plain: true,
+      });
+      return;
+    }
+
+    await copyText(verificationCode);
+    ElMessage({
+      message: t('copySuccessMsg') + ': ' + verificationCode,
+      type: 'success',
+      plain: true,
+    });
+  } catch (err) {
+    console.error('复制验证码失败:', err);
+    ElMessage({
+      message: t('copyFailMsg'),
+      type: 'error',
+      plain: true,
+    });
+  }
 }
 
 function search() {
@@ -410,5 +577,12 @@ function getEmailList(emailId, size) {
     top: 42px;
     left: 208px;
   }
+}
+
+/* 新增按钮样式 */
+.icon.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 </style>

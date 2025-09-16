@@ -290,7 +290,13 @@ const en = {
     to: 'To',
     clear: 'Clear',
     include: 'Include',
-    delAllEmailConfirm: 'Do you really want to delete it?'
+    delAllEmailConfirm: 'Do you really want to delete it?',
+    copyFirstRecipient: 'Copy First Email Recipient',
+    copyVerificationCode: 'Copy Verification Code',
+    noEmailsFound: 'No emails found',
+    noRecipientFound: 'No recipient found',
+    noVerificationCodeFound: 'No verification code found',
+    tryRefreshEmails: 'Please try refreshing emails'
 }
 
 export default en

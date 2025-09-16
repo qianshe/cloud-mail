@@ -290,6 +290,12 @@ const zhTW = {
     to: '至',
     clear: '清除',
     include: '包含',
-    delAllEmailConfirm: '您確定要刪除嗎？'
+    delAllEmailConfirm: '您確定要刪除嗎？',
+    copyFirstRecipient: '複製第一封郵件收件人',
+    copyVerificationCode: '複製驗證碼',
+    noEmailsFound: '沒有找到郵件',
+    noRecipientFound: '沒有找到收件人',
+    noVerificationCodeFound: '沒有找到驗證碼',
+    tryRefreshEmails: '請嘗試重新整理郵件'
 }
 export default zhTW

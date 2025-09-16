@@ -290,7 +290,13 @@ const zh = {
     to: '至',
     clear: '清除',
     include: '包含',
-    delAllEmailConfirm: '确定要删除吗？'
+    delAllEmailConfirm: '确定要删除吗？',
+    copyFirstRecipient: '复制第一封邮件收件人',
+    copyVerificationCode: '复制验证码',
+    noEmailsFound: '没有找到邮件',
+    noRecipientFound: '没有找到收件人',
+    noVerificationCodeFound: '没有找到验证码',
+    tryRefreshEmails: '请尝试刷新邮件'
 
 }
 export default zh
