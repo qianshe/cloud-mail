@@ -8,11 +8,11 @@ enabled = true
 
 [[d1_databases]]
 binding = "db"			#d1数据库绑定名默认不可修改
-database_id = D1_DATABASES_ID		#d1数据库id
+database_id = "${D1_DATABASES_ID}"	        #d1数据库id
 
 [[kv_namespaces]]
 binding = "kv"			#kv绑定名默认不可修改
-id = KV_NAMESPACES_ID					#kv数据库id
+id = "${KV_NAMESPACES_ID}"					#kv数据库id
 
 #[[r2_buckets]]
 #binding = "r2"			#r2对象存储绑定名默认不可修改
